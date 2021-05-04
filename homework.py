@@ -64,7 +64,7 @@ def main():
                 send_message(parse_homework_status(new_homework.get('homeworks')[0]), bot)
                 logging.info(f'{bot.username} has sent a message')
             current_timestamp = new_homework.get('current_date', current_timestamp)
-            time.sleep(300)
+            time.sleep(1800)
 
         except Exception as e:
             print(f'Бот столкнулся с ошибкой: {e}')
