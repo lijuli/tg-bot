@@ -1,9 +1,9 @@
-import os
-import requests
-from logging import Handler, Formatter
-import logging
 import datetime as dt
-# import telegram
+import os
+from logging import Formatter
+from logging import Handler
+
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,8 +19,10 @@ class RequestsHandler(Handler):
             'chat_id': CHAT_ID,
             'text': log_entry,
         }
-        return requests.post(f'https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage',
-                             data=payload).content
+        return requests.post(
+            f'https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage',
+            data=payload
+        ).content
 
 
 class LogFormatter(Formatter):
