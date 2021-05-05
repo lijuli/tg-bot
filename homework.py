@@ -56,7 +56,7 @@ def send_message(message, bot_client):
 def main():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     logging.info(f'{bot.username} has started')
-    current_timestamp = 0  # int(time.time())
+    current_timestamp = int(time.time())
 
     while True:
         try:
