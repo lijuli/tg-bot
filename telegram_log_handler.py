@@ -4,12 +4,10 @@ from logging import Formatter
 from logging import Handler
 
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
 
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
 
 
 class RequestsHandler(Handler):

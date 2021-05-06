@@ -4,16 +4,20 @@ import time
 import requests
 import telegram
 import logging
-from dotenv import load_dotenv
 import telegram_log_handler
 
-load_dotenv()
-
-
-PRAKTIKUM_TOKEN = os.getenv('PRAKTIKUM_TOKEN')
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-
+PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
+TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+SLEEP_TIMEOUT = 1800
+ERR_SLEEP_TIMEOUT = 600
+VERDICTS = {
+    'rejected': 'К сожалению в работе нашлись ошибки.',
+    'reviewing': 'Ревьюер начал ревью.',
+    'approved': ('Ревьюеру всё понравилось, '
+                 'можно приступать к следующему уроку.')
+}
 
 telegram_logger = logging.getLogger(__name__)
 handler = telegram_log_handler.RequestsHandler()
@@ -32,30 +36,57 @@ logging.basicConfig(
 def parse_homework_status(homework):
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    if homework_status == 'rejected':
-        verdict = 'К сожалению в работе нашлись ошибки.'
-    else:
-        verdict = ('Ревьюеру всё понравилось, '
-                   'можно приступать к следующему уроку.')
-    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+
+    if not homework_name or not homework_status:
+        logging.error('homework_name is %s', homework_name)
+        logging.error('homework_status is %s', homework_status)
+        return 'Не удалось получить данные о работе.'
+
+    if homework_status not in VERDICTS:
+        logging.error('Unexpected status of homework: %s', homework_status)
+        return f'Статус работы: {homework_status}'
+
+    return (f'У вас проверили работу "{homework_name}"!\n\n'
+            f'{VERDICTS.get(homework_status)}')
+
+
+def check_json(response):
+    response_json = response.json()
+    if 'error' in response_json:
+        logging.error('Error in response')
+        raise Exception('Error in response: %s', response_json.get('error'))
+    return response_json
 
 
 def get_homework_statuses(current_timestamp):
-    homework_statuses = requests.get(
-        'https://praktikum.yandex.ru/api/user_api/homework_statuses/',
-        headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
-        params={'from_date': current_timestamp}
-    )
-    return homework_statuses.json()
+    try:
+        response = requests.get(
+            url=PRAKTIKUM_API,
+            headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
+            params={'from_date': current_timestamp}
+        )
+        # response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        logging.error(e, exc_info=True)
+        raise e
+    return check_json(response)
 
 
-def send_message(message, bot_client):
-    return bot_client.send_message(chat_id=CHAT_ID, text=message)
+def send_message(message, bot_client=None):
+    try:
+        return bot_client.send_message(chat_id=CHAT_ID, text=message)
+    except telegram.TelegramError as e:
+        logging.error(e, exc_info=True)
+        raise e
 
 
 def main():
-    bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    logging.info(f'{bot.username} has started')
+    try:
+        bot = telegram.Bot(token=TELEGRAM_TOKEN)
+        logging.info(f'{bot.username} has started')
+    except telegram.TelegramError as e:
+        logging.error(e, exc_info=True)
+        raise e
     current_timestamp = int(time.time())
 
     while True:
@@ -71,11 +102,10 @@ def main():
                 'current_date',
                 current_timestamp
             )
-            time.sleep(1800)
+            time.sleep(SLEEP_TIMEOUT)
         except Exception as e:
-            print(f'Бот столкнулся с ошибкой: {e}')
             telegram_logger.error(e, exc_info=True)
-            time.sleep(5)
+            time.sleep(ERR_SLEEP_TIMEOUT)
 
 
 if __name__ == '__main__':
