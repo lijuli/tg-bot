@@ -79,7 +79,7 @@ def get_homework_statuses(current_timestamp):
 
 def send_message(message, bot_client=None):
     try:
-        logging.info(f'{bot_client.username} has sent a message')
+        logging.info('Telegram bot has sent a message')
         return bot_client.send_message(chat_id=CHAT_ID, text=message)
     except telegram.TelegramError as e:
         logging.error(e, exc_info=True)
@@ -89,7 +89,7 @@ def send_message(message, bot_client=None):
 def main():
     try:
         bot = telegram.Bot(token=TELEGRAM_TOKEN)
-        logging.info(f'{bot.username} has started')
+        logging.info('Telegram bot has started')
     except telegram.TelegramError as e:
         logging.error(e, exc_info=True)
         raise e
