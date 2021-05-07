@@ -48,7 +48,10 @@ def parse_homework_status(homework):
         return 'Не удалось получить данные о работе.'
 
     if homework_status not in VERDICTS:
-        telegram_logger.error('Unexpected status of homework: %s', homework_status)
+        telegram_logger.error(
+            'Unexpected status of homework: %s',
+            homework_status
+        )
         return f'Статус работы: {homework_status}'
 
     return (f'У вас проверили работу "{homework_name}"!\n\n'
