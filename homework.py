@@ -24,7 +24,7 @@ try:
     TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
     CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
 except KeyError as e:
-    logging.error(e, exc_info=True)
+    telegram_logger.error(e, exc_info=True)
     raise e
 
 PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
@@ -43,12 +43,12 @@ def parse_homework_status(homework):
     homework_status = homework.get('status')
 
     if not homework_name or not homework_status:
-        logging.error('homework_name is %s', homework_name)
-        logging.error('homework_status is %s', homework_status)
+        telegram_logger.error('homework_name is %s', homework_name)
+        telegram_logger.error('homework_status is %s', homework_status)
         return 'Не удалось получить данные о работе.'
 
     if homework_status not in VERDICTS:
-        logging.error('Unexpected status of homework: %s', homework_status)
+        telegram_logger.error('Unexpected status of homework: %s', homework_status)
         return f'Статус работы: {homework_status}'
 
     return (f'У вас проверили работу "{homework_name}"!\n\n'
@@ -58,7 +58,7 @@ def parse_homework_status(homework):
 def check_json(response):
     response_json = response.json()
     if 'error' in response_json:
-        logging.error('Error in response')
+        telegram_logger.error('Error in response')
         raise Exception('Error in response: %s', response_json.get('error'))
     return response_json
 
@@ -72,7 +72,7 @@ def get_homework_statuses(current_timestamp):
         )
         # response.raise_for_status()
     except requests.exceptions.HTTPError as e:
-        logging.error(e, exc_info=True)
+        telegram_logger.error(e, exc_info=True)
         raise e
     return check_json(response)
 
@@ -82,7 +82,7 @@ def send_message(message, bot_client=None):
         logging.info('Telegram bot has sent a message')
         return bot_client.send_message(chat_id=CHAT_ID, text=message)
     except telegram.TelegramError as e:
-        logging.error(e, exc_info=True)
+        telegram_logger.error(e, exc_info=True)
         raise e
 
 
@@ -91,7 +91,7 @@ def main():
         bot = telegram.Bot(token=TELEGRAM_TOKEN)
         logging.info('Telegram bot has started')
     except telegram.TelegramError as e:
-        logging.error(e, exc_info=True)
+        telegram_logger.error(e, exc_info=True)
         raise e
     current_timestamp = int(time.time())
 
