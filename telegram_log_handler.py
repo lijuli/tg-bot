@@ -4,7 +4,9 @@ from logging import Formatter
 from logging import Handler
 
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()
 
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
 CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
@@ -24,7 +26,6 @@ class RequestsHandler(Handler):
 
 
 class LogFormatter(Formatter):
-
     def format(self, record):
         _date_format = '%d.%m.%Y'
         date = dt.datetime.utcnow().strftime(_date_format)

@@ -6,19 +6,6 @@ import telegram
 import logging
 import telegram_log_handler
 
-PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
-TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
-PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
-SLEEP_TIMEOUT = 1800
-ERR_SLEEP_TIMEOUT = 600
-VERDICTS = {
-    'rejected': 'К сожалению в работе нашлись ошибки.',
-    'reviewing': 'Ревьюер начал ревью.',
-    'approved': ('Ревьюеру всё понравилось, '
-                 'можно приступать к следующему уроку.')
-}
-
 telegram_logger = logging.getLogger(__name__)
 handler = telegram_log_handler.RequestsHandler()
 formatter = telegram_log_handler.LogFormatter()
@@ -31,6 +18,24 @@ logging.basicConfig(
     filename='telegram_bot.log',
     filemode='w'
 )
+
+try:
+    PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
+    TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+    CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+except KeyError as e:
+    logging.error(e, exc_info=True)
+    raise e
+
+PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+SLEEP_TIMEOUT = 1800
+ERR_SLEEP_TIMEOUT = 600
+VERDICTS = {
+    'rejected': 'К сожалению в работе нашлись ошибки.',
+    'reviewing': 'Ревьюер начал ревью.',
+    'approved': ('Ревьюеру всё понравилось, '
+                 'можно приступать к следующему уроку.')
+}
 
 
 def parse_homework_status(homework):
@@ -74,6 +79,7 @@ def get_homework_statuses(current_timestamp):
 
 def send_message(message, bot_client=None):
     try:
+        logging.info(f'{bot_client.username} has sent a message')
         return bot_client.send_message(chat_id=CHAT_ID, text=message)
     except telegram.TelegramError as e:
         logging.error(e, exc_info=True)
@@ -97,7 +103,6 @@ def main():
                     new_homework.get('homeworks')[0]
                 )
                 send_message(message, bot)
-                logging.info(f'{bot.username} has sent a message')
             current_timestamp = new_homework.get(
                 'current_date',
                 current_timestamp
