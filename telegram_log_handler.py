@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 import os
 from logging import Formatter
 from logging import Handler
@@ -8,8 +9,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+
+try:
+    TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+    CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+except KeyError as e:
+    raise e
 
 
 class RequestsHandler(Handler):

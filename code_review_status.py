@@ -31,10 +31,9 @@ PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
 SLEEP_TIMEOUT = 1800
 ERR_SLEEP_TIMEOUT = 600
 VERDICTS = {
-    'rejected': 'К сожалению в работе нашлись ошибки.',
-    'reviewing': 'Ревьюер начал ревью.',
-    'approved': ('Ревьюеру всё понравилось, '
-                 'можно приступать к следующему уроку.')
+    'rejected': 'Issues found during the code review.',
+    'reviewing': 'Reviewer has started the code review.',
+    'approved': ('Code review done, no new issues found :).')
 }
 
 
@@ -45,16 +44,16 @@ def parse_homework_status(homework):
     if not homework_name or not homework_status:
         telegram_logger.error('homework_name is %s', homework_name)
         telegram_logger.error('homework_status is %s', homework_status)
-        return 'Не удалось получить данные о работе.'
+        return 'Failed to get an update about homework.'
 
     if homework_status not in VERDICTS:
         telegram_logger.error(
             'Unexpected status of homework: %s',
             homework_status
         )
-        return f'Статус работы: {homework_status}'
+        return f'Homework status is: {homework_status}'
 
-    return (f'У вас проверили работу "{homework_name}"!\n\n'
+    return (f'You homework has been checked "{homework_name}"!\n\n'
             f'{VERDICTS.get(homework_status)}')
 
 
@@ -73,11 +72,11 @@ def get_homework_statuses(current_timestamp):
             headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
             params={'from_date': current_timestamp}
         )
-        # response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+        response.raise_for_status()
+        return check_json(response)
+    except Exception as e:
         telegram_logger.error(e, exc_info=True)
-        raise e
-    return check_json(response)
+        return {}
 
 
 def send_message(message, bot_client=None):
@@ -96,7 +95,7 @@ def main():
     except telegram.TelegramError as e:
         telegram_logger.error(e, exc_info=True)
         raise e
-    current_timestamp = int(time.time())
+    current_timestamp = 0  # int(time.time())
 
     while True:
         try:
