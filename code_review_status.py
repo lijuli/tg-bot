@@ -20,14 +20,14 @@ logging.basicConfig(
 )
 
 try:
-    PRAKTIKUM_TOKEN = os.environ['PRAKTIKUM_TOKEN']
+    P_TOKEN = os.environ['P_TOKEN']
     TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
     CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
 except KeyError as e:
     telegram_logger.error(e, exc_info=True)
     raise e
 
-PRAKTIKUM_API = 'https://localhost/api/user_api/homework_statuses/'
+P_API = 'https://localhost/api/user_api/homework_statuses/'
 SLEEP_TIMEOUT = 1800
 ERR_SLEEP_TIMEOUT = 600
 VERDICTS = {
@@ -68,8 +68,8 @@ def check_json(response):
 def get_homework_statuses(current_timestamp):
     try:
         response = requests.get(
-            url=PRAKTIKUM_API,
-            headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
+            url=P_API,
+            headers={'Authorization': f'OAuth {P_TOKEN}'},
             params={'from_date': current_timestamp}
         )
         response.raise_for_status()
