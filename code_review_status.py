@@ -27,7 +27,7 @@ except KeyError as e:
     telegram_logger.error(e, exc_info=True)
     raise e
 
-PRAKTIKUM_API = 'https://praktikum.yandex.ru/api/user_api/homework_statuses/'
+PRAKTIKUM_API = 'https://localhost/api/user_api/homework_statuses/'
 SLEEP_TIMEOUT = 1800
 ERR_SLEEP_TIMEOUT = 600
 VERDICTS = {
